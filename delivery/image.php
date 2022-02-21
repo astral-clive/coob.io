@@ -1,10 +1,7 @@
 <?php
 
 // grab arguments
-
-echo '<pre>';
-var_dump($_SERVER);
-echo '</pre>';
+echo 'image.php found';
 
 $args = explode('/', $_SERVER['REQUEST_URI'] );
 echo '<pre>';
