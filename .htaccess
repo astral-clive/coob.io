@@ -1,3 +1,8 @@
 RewriteEngine On
 
-RewriteRule ^([a-z0-9]+)/?$ /delivery/image.php [L]
+RewriteRule ^([a-fA-F0-9]+)/?$ /delivery/image.php [L]
+
+# expiration control | cache resources
+AddType image/svg+xml .svg
+AddOutputFilterByType DEFLATE image/svg+xml
+ExpiresByType image/svg+xml "access plus 5 seconds"

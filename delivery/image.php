@@ -10,13 +10,16 @@ $args = explode('/', $_SERVER['REQUEST_URI'] );
  */
 
 $hex_code = $args[1];
+$hex_code = coob_sanitize_hex( $hex_code );
 
 // validate hex code
 if( !coob_validate_hex_code( $hex_code ) ){
-//    $image = coob_generate_svg( 'f00', 32, 32 );
+    // @todo: create placeholder to show error, perhaps question mark
+    $image = coob_generate_svg( 'f00', 32, 32 );
 }
 
-$image = coob_generate_svg( $hex_code, 64, 64 );
+$size = 64; // px (width and height)
+$image = coob_generate_svg( $hex_code, $size, $size );
 
 if( !$image ){
     echo 'error creating';

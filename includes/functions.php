@@ -1,141 +1,94 @@
 <?php
-require_once __DIR__.'/../vendors/php-svg/autoloader.php';
-use SVG\SVG;
-use SVG\Nodes\Shapes\SVGCircle;
-use SVG\Nodes\Shapes\SVGRect;
 
 function coob_validate_hex_code($str){
     return preg_match('/^#?([a-f0-9]{3}){1,2}\b$/i', $str);
 }
 
-function coob_hex_to_rgb( $hex_code = false , $return_as_string = false, $seperator =',' ){
+function adjustBrightness($hex_code = false, $adjustPercent = 0.1) {
     if( !$hex_code ) return false;
-    $hex_code = preg_replace("/[^0-9A-Fa-f]/", '', $hex_code); // Gets a proper hex string
-    $rgb_array = array();
-    if (strlen($hex_code) == 6) { //If a proper hex code, convert using bitwise operation. No overhead... faster
-        $colorVal = hexdec($hex_code);
-        $rgb_array['red'] = 0xFF & ($colorVal >> 0x10);
-        $rgb_array['green'] = 0xFF & ($colorVal >> 0x8);
-        $rgb_array['blue'] = 0xFF & $colorVal;
-    } elseif (strlen($hex_code) == 3) { //if shorthand notation, need some string manipulations
-        $rgb_array['red'] = hexdec(str_repeat(substr($hex_code, 0, 1), 2));
-        $rgb_array['green'] = hexdec(str_repeat(substr($hex_code, 1, 1), 2));
-        $rgb_array['blue'] = hexdec(str_repeat(substr($hex_code, 2, 1), 2));
-    } else {
-        return false; //Invalid hex color code
+    $hex_code = ltrim($hex_code, '#');
+
+    // if hex is 3 characters, make it into 6 character
+    if (strlen($hex_code) == 3) {
+        $hex_code = $hex_code[0] . $hex_code[0] . $hex_code[1] . $hex_code[1] . $hex_code[2] . $hex_code[2];
     }
-    return $return_as_string ? implode($seperator, $rgb_array) : $rgb_array; // returns the rgb string or the associative array
+
+    // https://www.php.net/manual/en/function.hexdec.php
+    $hex_code = array_map('hexdec', str_split($hex_code, 2));
+
+    foreach ($hex_code as & $color_value) {
+        $adjustableLimit = $adjustPercent < 0 ? $color_value : 255 - $color_value;
+        $adjustAmount = ceil($adjustableLimit * $adjustPercent);
+        $color_value = str_pad(dechex($color_value + $adjustAmount), 2, '0', STR_PAD_LEFT);    }
+
+    return '#' . implode($hex_code);
 }
 
-//function coob_generate_image($hex_code = false, $width = false, $height = false, $border_radius = false ){
-//    if( !$hex_code ) return false;
-//    $get_rgb = coob_hex_to_rgb( $hex_code );
-//    if( !$get_rgb ) return false;
-//    if( !array_key_exists('red', $get_rgb )
-//        || !array_key_exists('green', $get_rgb )
-//        || !array_key_exists( 'blue', $get_rgb )
-//    ) return false;
-//
-//    // generate values
-//    $width = $width ?: 32;
-//    $height = $height ?: $width;
-//    if( !$border_radius ){
-//        $border_radius = ( $width <= 32 && $height <= 32 ) ? 5 : false;
-//        if( !$border_radius ){
-//            if( $width >= $height ){
-//                $border_radius = float($width*0.15);
-//            } else {
-//                $border_radius = float($height*0.15);
-//            }
-//        }
-//    }
-//
-//    // create the canvas
-//    $image = imagecreatetruecolor( $width, $height );
-//
-//    // set the color
-//    $forefront_color = imagecolorallocate( $image,  $get_rgb['red'], $get_rgb['green'], $get_rgb['blue']);
-//
-//    // make background transparent
-//    $canvas_background = imagecolorallocate($image, 0, 0, 0);
-//    imagecolortransparent($image, $canvas_background);
-//
-//    // draw rectangles
-//    // __ horizontal
-//    imagefilledrectangle($image, 0, $border_radius, $width, $height-$border_radius, $forefront_color);
-//    // __ vertical
-//    imagefilledrectangle($image, $border_radius, 0, $width-$border_radius, $height, $forefront_color);
-//
-//    // draw circles
-//    // __ top left
-//    imagefilledellipse($image, $border_radius, $border_radius, $border_radius*2, $border_radius*2, $forefront_color );
-//    // __ top right
-//    imagefilledellipse($image, $width-$border_radius, $border_radius, $border_radius*2, $border_radius*2, $forefront_color );
-//    // __ bottom right
-//    imagefilledellipse($image, $border_radius, $height-$border_radius, $border_radius*2, $border_radius*2, $forefront_color );
-//    // __ bottom left
-//    imagefilledellipse($image, $width-$border_radius, $height-$border_radius, $border_radius*2, $border_radius*2, $forefront_color );
-//
-//
-//
-//    header('Content-type: image/png');
-//
-//
-////    // alpha blending - transparency
-////    imagealphablending($image, false);
-////    imagesavealpha($image, true);
-//
-//    imagepng($image);
-//}
+function coob_sanitize_hex( $hex_code = false ){
+    if( !$hex_code ) return false;
+    // sanitize hex_code
+    $hex_code = preg_replace("/[^a-zA-Z0-9]+/", "", $hex_code);
+    $hex_code_length = strlen($hex_code);
+    if( $hex_code_length !== 3 && $hex_code_length !== 6 ){
+        $hex_code = ( $hex_code_length > 6 ? substr( $hex_code, 0, 3 ) : substr( $hex_code, 0, 6 ) );
+    }
+    $hex_code = (substr( $hex_code, 0, 1 ) !== '#' ) ? '#'. $hex_code : $hex_code;
+    return $hex_code;
+}
 
-function coob_generate_svg( $hex_code = false, $width = false, $height = false, $border_radius = false ){
+function coob_generate_svg( $hex_code = false, $width = false, $height = false, $border_radius = false, $shadow = false ){
     if( !$hex_code ) return false;
 
     // generate values
     $width = $width ?: 64;
     $height = $height ?: $width;
     $border_radius = $border_radius ?: 5;
-
-
-    // create canvas
-    $image = new SVG( $width, $height );
-    $doc = $image->getDocument();
-
-    // draw rectangles
-    // __ horizontal
-    $rectangle_h = new SVGRect(0, $border_radius, $width, $height-($border_radius*2));
-    $rectangle_h->setStyle('fill', '#'. $hex_code );
-    $doc->addChild($rectangle_h);
-    // __ vertical
-    $rectangle_v = new SVGRect($border_radius, 0, $width-($border_radius*2), $height);
-    $rectangle_v->setStyle('fill', '#'. $hex_code );
-    $doc->addChild($rectangle_v);
-
-    // draw circles
-    // __ top left
-    $doc->addChild(
-        (new SVGCircle($border_radius, $border_radius, $border_radius))
-            ->setStyle('fill', '#'. $hex_code)
-    );
-    // __ top right
-    $doc->addChild(
-        (new SVGCircle($width-$border_radius, $border_radius, $border_radius))
-            ->setStyle('fill', '#'. $hex_code)
-    );
-    // __ bottom right
-    $doc->addChild(
-        (new SVGCircle($width-$border_radius, $height-$border_radius, $border_radius))
-            ->setStyle('fill', '#'. $hex_code)
-    );
-    // __ bottom left
-    $doc->addChild(
-        (new SVGCircle($border_radius, $height-$border_radius, $border_radius))
-            ->setStyle('fill', '#'. $hex_code)
-    );
-
+    $shadow = $shadow ?: 5;
+    $hex_code = (substr( $hex_code, 0, 1 ) !== '#' ) ? '#'. $hex_code : $hex_code;
 
     header('Content-Type: image/svg+xml');
-    echo $image;
+    ob_start();
+
+    echo '<?xml version="1.0" encoding="utf-8"?>';
+    echo '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="'. ( $width+($shadow*2) ) .'" height="'. ( $height+($shadow*2) ) .'" >';
+
+    // definitions
+    echo '<defs>';
+    echo '<linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%" gradientUnits="userSpaceOnUse">';
+    echo '<stop offset="0%" style="stop-color:'. adjustBrightness( $hex_code, 0.2) .';stop-opacity:1" />';
+    echo '<stop offset="100%" style="stop-color:'. $hex_code .';stop-opacity:1" />';
+    echo '</linearGradient>';
+    echo '<filter id="shadow">';
+    echo '<feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="rgba(0,0,0,0.2)"></feDropShadow>';
+    echo '</filter>';
+    echo '</defs>';
+
+    echo '<g id="coob" style="fill: url(#shape-gradient)">';
+
+    // rectangles
+    // __ horizontal
+    echo '<rect x="0" y="'. $border_radius .'" width="'. $width .'" height="'. ($height-($border_radius*2)) .'" style="fill: url(#gradient)"/>';
+    // __ vertical
+    echo '<rect x="'. $border_radius .'" y="0" width="'. ($width-($border_radius*2)) .'" height="'. $height .'" style="fill: url(#gradient)"/>';
+    // __ shadow
+    // @todo: add drop shadow
+    //    echo '<rect x="'. $shadow .'" y="'. $shadow .'" width="'. $width .'" height="'. $height .'" filter="url(#shadow)" style="fill: #f00"/>';
+
+    // circles
+    // __ top left
+    echo '<circle cx="'. $border_radius .'" cy="'. $border_radius .'" r="'. $border_radius .'" style="fill: url(#gradient)"/>';
+    // __ top right
+    echo '<circle cx="'. ( $width - $border_radius ) .'" cy="'. $border_radius .'" r="'. $border_radius .'" style="fill: url(#gradient)"/>';
+    // __ bottom right
+    echo '<circle cx="'. ( $width - $border_radius ) .'" cy="'. ( $height - $border_radius ) .'" r="'. $border_radius .'" style="fill: url(#gradient)"/>';
+    // __ bottom left
+    echo '<circle cx="'. $border_radius .'" cy="'. ( $height - $border_radius ) .'" r="'. $border_radius .'" style="fill: url(#gradient)"/>';
+
+    echo '</g>'; // #coob
+
+    echo '</svg>';
+
+    echo ob_get_clean();
 
     exit;
 }
