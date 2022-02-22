@@ -1,4 +1,8 @@
 <?php
+require_once __DIR__.'/../vendors/php-svg/autoloader.php';
+use SVG\SVG;
+use SVG\Nodes\Shapes\SVGCircle;
+use SVG\Nodes\Shapes\SVGRect;
 
 function coob_validate_hex_code($str){
     return preg_match('/^#?([a-f0-9]{3}){1,2}\b$/i', $str);
@@ -23,67 +27,127 @@ function coob_hex_to_rgb( $hex_code = false , $return_as_string = false, $sepera
     return $return_as_string ? implode($seperator, $rgb_array) : $rgb_array; // returns the rgb string or the associative array
 }
 
-function coob_generate_image($hex_code = false, $width = false, $height = false, $border_radius = false ){
+//function coob_generate_image($hex_code = false, $width = false, $height = false, $border_radius = false ){
+//    if( !$hex_code ) return false;
+//    $get_rgb = coob_hex_to_rgb( $hex_code );
+//    if( !$get_rgb ) return false;
+//    if( !array_key_exists('red', $get_rgb )
+//        || !array_key_exists('green', $get_rgb )
+//        || !array_key_exists( 'blue', $get_rgb )
+//    ) return false;
+//
+//    // generate values
+//    $width = $width ?: 32;
+//    $height = $height ?: $width;
+//    if( !$border_radius ){
+//        $border_radius = ( $width <= 32 && $height <= 32 ) ? 5 : false;
+//        if( !$border_radius ){
+//            if( $width >= $height ){
+//                $border_radius = float($width*0.15);
+//            } else {
+//                $border_radius = float($height*0.15);
+//            }
+//        }
+//    }
+//
+//    // create the canvas
+//    $image = imagecreatetruecolor( $width, $height );
+//
+//    // set the color
+//    $forefront_color = imagecolorallocate( $image,  $get_rgb['red'], $get_rgb['green'], $get_rgb['blue']);
+//
+//    // make background transparent
+//    $canvas_background = imagecolorallocate($image, 0, 0, 0);
+//    imagecolortransparent($image, $canvas_background);
+//
+//    // draw rectangles
+//    // __ horizontal
+//    imagefilledrectangle($image, 0, $border_radius, $width, $height-$border_radius, $forefront_color);
+//    // __ vertical
+//    imagefilledrectangle($image, $border_radius, 0, $width-$border_radius, $height, $forefront_color);
+//
+//    // draw circles
+//    // __ top left
+//    imagefilledellipse($image, $border_radius, $border_radius, $border_radius*2, $border_radius*2, $forefront_color );
+//    // __ top right
+//    imagefilledellipse($image, $width-$border_radius, $border_radius, $border_radius*2, $border_radius*2, $forefront_color );
+//    // __ bottom right
+//    imagefilledellipse($image, $border_radius, $height-$border_radius, $border_radius*2, $border_radius*2, $forefront_color );
+//    // __ bottom left
+//    imagefilledellipse($image, $width-$border_radius, $height-$border_radius, $border_radius*2, $border_radius*2, $forefront_color );
+//
+//
+//
+//    header('Content-type: image/png');
+//
+//
+////    // alpha blending - transparency
+////    imagealphablending($image, false);
+////    imagesavealpha($image, true);
+//
+//    imagepng($image);
+//}
+
+function coob_generate_svg( $hex_code = false, $width = false, $height = false, $border_radius = false ){
     if( !$hex_code ) return false;
-    $get_rgb = coob_hex_to_rgb( $hex_code );
-    if( !$get_rgb ) return false;
-    if( !array_key_exists('red', $get_rgb )
-        || !array_key_exists('green', $get_rgb )
-        || !array_key_exists( 'blue', $get_rgb )
-    ) return false;
 
     // generate values
-    $width = $width ?: 32;
+    $width = $width ?: 64;
     $height = $height ?: $width;
     if( !$border_radius ){
-        $border_radius = ( $width <= 32 && $height <= 32 ) ? 5 : false;
+        $border_radius = ( $width <= 64 && $height <= 64 ) ? 5 : false;
         if( !$border_radius ){
             if( $width >= $height ){
-                $border_radius = float($width*0.15);
+                $border_radius = round($width*0.15);
             } else {
-                $border_radius = float($height*0.15);
+                $border_radius = round($height*0.15);
             }
         }
     }
 
-    // create the canvas
-    $image = imagecreatetruecolor( $width, $height );
 
-    // set the color
-    $forefront_color = imagecolorallocate( $image,  $get_rgb['red'], $get_rgb['green'], $get_rgb['blue']);
-
-    // make background transparent
-    $canvas_background = imagecolorallocate($image, 0, 0, 0);
-    imagecolortransparent($image, $canvas_background);
+    // create canvas
+    $image = new SVG( $width, $height );
+    $doc = $image->getDocument();
 
     // draw rectangles
     // __ horizontal
-    imagefilledrectangle($image, 0, $border_radius, $width, $height-$border_radius, $forefront_color);
+    $rectangle_h = new SVGRect(0, $border_radius, $width, $height-($border_radius*2));
+    $rectangle_h->setStyle('fill', '#'. $hex_code );
+    $doc->addChild($rectangle_h);
     // __ vertical
-    imagefilledrectangle($image, $border_radius, 0, $width-$border_radius, $height, $forefront_color);
+    $rectangle_v = new SVGRect($border_radius, 0, $width-($border_radius*2), $height);
+    $rectangle_v->setStyle('fill', '#'. $hex_code );
+    $doc->addChild($rectangle_v);
 
     // draw circles
     // __ top left
-    imagefilledellipse($image, $border_radius, $border_radius, $border_radius*2, $border_radius*2, $forefront_color );
+    $doc->addChild(
+        (new SVGCircle($border_radius, $border_radius, $border_radius))
+            ->setStyle('fill', '#'. $hex_code)
+    );
     // __ top right
-    imagefilledellipse($image, $width-$border_radius, $border_radius, $border_radius*2, $border_radius*2, $forefront_color );
+    $doc->addChild(
+        (new SVGCircle($width-$border_radius, $border_radius, $border_radius))
+            ->setStyle('fill', '#'. $hex_code)
+    );
     // __ bottom right
-    imagefilledellipse($image, $border_radius, $height-$border_radius, $border_radius*2, $border_radius*2, $forefront_color );
+    $doc->addChild(
+        (new SVGCircle($width-$border_radius, $height-$border_radius, $border_radius))
+            ->setStyle('fill', '#'. $hex_code)
+    );
     // __ bottom left
-    imagefilledellipse($image, $width-$border_radius, $height-$border_radius, $border_radius*2, $border_radius*2, $forefront_color );
+    $doc->addChild(
+        (new SVGCircle($border_radius, $height-$border_radius, $border_radius))
+            ->setStyle('fill', '#'. $hex_code)
+    );
 
 
+    header('Content-Type: image/svg+xml');
+    echo $image;
 
-    header('Content-type: image/png');
-
-
-//    // alpha blending - transparency
-//    imagealphablending($image, false);
-//    imagesavealpha($image, true);
-
-    imagepng($image);
+    exit;
 }
-
 
 
 function image_rectangle_w_rounded_corners(&$im, $x1, $y1, $x2, $y2, $radius, $color) {
