@@ -60,14 +60,14 @@ function coob_generate_svg( $hex_code = false, $width = false, $height = false, 
     echo '<stop offset="100%" style="stop-color:'. $hex_code .';stop-opacity:1" />';
     echo '</linearGradient>';
     echo '<filter id="shadow">';
-    echo '<feDropShadow dx="0" dy="0" stdDeviation="'. $shadow_size .'" flood-color="rgba(0,0,0,0.9)"></feDropShadow>';
+    echo '<feDropShadow dx="0" dy="0" stdDeviation="'. $shadow_size .'" flood-color="rgba(0,0,0,0.2)"></feDropShadow>';
     echo '</filter>';
     echo '</defs>';
 
     // drop shadow behind
-    echo '<rect x="'. $shadow_buffer .'" y="'. $shadow_buffer .'" width="'. $width .'" height="'. $height .'" filter="url(#shadow)" style="fill: #000" />';
+//    echo '<rect x="'. ($shadow_buffer+$border_radius) .'" y="'. ($shadow_buffer+$border_radius) .'" width="'. ($width-($border_radius*2)) .'" height="'. ($height-($border_radius*2)) .'" filter="url(#shadow)" style="fill: #000" />';
 
-    echo '<g id="coob" style="fill: url(#shape-gradient)">';
+    echo '<g id="coob" style="fill: url(#shape-gradient)" filter="url(#shadow)">';
 
     // rectangles
     // __ horizontal
