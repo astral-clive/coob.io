@@ -37,7 +37,19 @@ function coob_generate_image($hex_code = false, $width = 32, $height = 32){
     // set the color
     $background_color = imagecolorallocate( $image,  $get_rgb['red'], $get_rgb['green'], $get_rgb['blue']);
     // use that color to fill
-    imagefill( $image, 0, 0, $background_color );
+//    imagefill( $image, 0, 0, $background_color );
+
+    // polygon
+    // Allocate a color for the polygon
+    $image_color = imagecolorallocate($image, $get_rgb['red'], $get_rgb['green'], $get_rgb['blue'] );
+
+    // Draw the polygon
+    $points = array(
+        $width,  0, // Point 1 (x, y)
+        $width,  $height,  // Point 2 (x, y)
+        0, $height // Point 3 (x, y)
+    );
+    imagefilledpolygon($image, $points, 3, $image_color);
 
     header('Content-type: image/png');
     imagepng($image);
