@@ -42,7 +42,7 @@ function coob_generate_svg( $hex_code = false, $width = false, $height = false, 
     // generate values
     $width = $width ?: 64;
     $height = $height ?: $width;
-    $border_radius = $border_radius ?: 25;
+    $border_radius = $border_radius ?: 5;
     $shadow_size = $shadow_size ?: 2;
     $shadow_buffer = $shadow_size*2;
     $hex_code = (substr( $hex_code, 0, 1 ) !== '#' ) ? '#'. $hex_code : $hex_code;
@@ -51,7 +51,7 @@ function coob_generate_svg( $hex_code = false, $width = false, $height = false, 
     ob_start();
 
     echo '<?xml version="1.0" encoding="utf-8"?>';
-    echo '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="'. ( $width+($shadow_size*4) ) .'" height="'. ( $height+($shadow_size*4) ) .'" >';
+    echo '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="'. $width .'" height="'. $height .'" >';
 
     // definitions
     echo '<defs>';
@@ -67,24 +67,24 @@ function coob_generate_svg( $hex_code = false, $width = false, $height = false, 
     // drop shadow behind
 //    echo '<rect x="'. ($shadow_buffer+$border_radius) .'" y="'. ($shadow_buffer+$border_radius) .'" width="'. ($width-($border_radius*2)) .'" height="'. ($height-($border_radius*2)) .'" filter="url(#shadow)" style="fill: #000" />';
 
-    echo '<g id="coob" style="fill: url(#shape-gradient)" filter="url(#shadow)">';
+    echo '<g id="coob" filter="url(#shadow)">';
 
     // rectangles
     // __ horizontal
-    echo '<rect x="'. $shadow_buffer .'" y="'. ($shadow_buffer+$border_radius) .'" width="'. $width .'" height="'. ($height-($border_radius*2)) .'" style="fill: url(#gradient)"/>';
+    echo '<rect id="rect-h" x="'. $shadow_buffer .'" y="'. ($shadow_buffer+$border_radius) .'" width="'. ($width-($shadow_buffer*2)) .'" height="'. ($height-($border_radius*2)-($shadow_buffer*2)) .'" style="fill: url(#gradient)"/>';
     // __ vertical
-    echo '<rect x="'. ($shadow_buffer+$border_radius) .'" y="'. $shadow_buffer .'" width="'. ($width-($border_radius*2)) .'" height="'. $height .'" style="fill: url(#gradient)"/>';
+    echo '<rect id="rect-v" x="'. ($shadow_buffer+$border_radius) .'" y="'. $shadow_buffer .'" width="'. ($width-($border_radius*2)-($shadow_buffer*2)) .'" height="'. ($height-($shadow_buffer*2)) .'" style="fill: url(#gradient)"/>';
 
 
     // circles
     // __ top left
-    echo '<circle cx="'. ( $border_radius + $shadow_buffer ) .'" cy="'. ( $border_radius + $shadow_buffer ) .'" r="'. $border_radius .'" style="fill: url(#gradient)"/>';
+    echo '<circle cx="'. ($border_radius+$shadow_buffer) .'" cy="'. ( $border_radius + $shadow_buffer ) .'" r="'. $border_radius .'" style="fill: url(#gradient)"/>';
     // __ top right
-    echo '<circle cx="'. (( $width -  $border_radius ) + $shadow_buffer) .'" cy="'. ( $border_radius + $shadow_buffer ) .'" r="'. $border_radius .'" style="fill: url(#gradient)"/>';
+    echo '<circle cx="'. ($width-$border_radius-$shadow_buffer) .'" cy="'. ( $border_radius + $shadow_buffer ) .'" r="'. $border_radius .'" style="fill: url(#gradient)"/>';
     // __ bottom right
-    echo '<circle cx="'. (( $width -  $border_radius ) + $shadow_buffer) .'" cy="'. (( $height - $border_radius )+$shadow_buffer) .'" r="'. $border_radius .'" style="fill: url(#gradient)"/>';
+    echo '<circle cx="'. ($width-$border_radius-$shadow_buffer) .'" cy="'. ($height-$border_radius-$shadow_buffer) .'" r="'. $border_radius .'" style="fill: url(#gradient)"/>';
     // __ bottom left
-    echo '<circle cx="'. ( $border_radius + $shadow_buffer ) .'" cy="'. (( $height - $border_radius )+$shadow_buffer) .'" r="'. $border_radius .'" style="fill: url(#gradient)"/>';
+    echo '<circle cx="'. ($border_radius+$shadow_buffer) .'" cy="'. ($height-$border_radius-$shadow_buffer) .'" r="'. $border_radius .'" style="fill: url(#gradient)"/>';
 
     echo '</g>'; // #coob
 
