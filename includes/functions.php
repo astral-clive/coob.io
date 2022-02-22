@@ -60,7 +60,7 @@ function coob_generate_svg( $hex_code = false, $width = false, $height = false, 
     echo '<stop offset="100%" style="stop-color:'. $hex_code .';stop-opacity:1" />';
     echo '</linearGradient>';
     echo '<filter id="shadow">';
-    echo '<feDropShadow dx="0" dy="0" stdDeviation="'. $shadow_size .'" flood-color="rgba(0,0,0,0.2)"></feDropShadow>';
+    echo '<feDropShadow dx="0" dy="0" stdDeviation="'. $shadow_size .'" flood-color="rgba(0,0,0,0)"></feDropShadow>';
     echo '</filter>';
     echo '</defs>';
 
