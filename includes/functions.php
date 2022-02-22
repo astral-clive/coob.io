@@ -94,16 +94,7 @@ function coob_generate_svg( $hex_code = false, $width = false, $height = false, 
     // generate values
     $width = $width ?: 64;
     $height = $height ?: $width;
-    if( !$border_radius ){
-        $border_radius = ( $width <= 64 && $height <= 64 ) ? 5 : false;
-        if( !$border_radius ){
-            if( $width >= $height ){
-                $border_radius = round($width*0.15);
-            } else {
-                $border_radius = round($height*0.15);
-            }
-        }
-    }
+    $border_radius = $border_radius ?: 5;
 
 
     // create canvas
