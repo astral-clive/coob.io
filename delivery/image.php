@@ -18,7 +18,7 @@ if( !coob_validate_hex_code( $hex_code ) ){
     $image = coob_generate_svg( 'f00', 32, 32 );
 }
 
-$size = 64; // px (width and height)
+$size = 500; // px (width and height)
 $image = coob_generate_svg( $hex_code, $size, $size );
 
 if( !$image ){
