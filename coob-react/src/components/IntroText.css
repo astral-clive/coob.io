@@ -1,0 +1,17 @@
+.intro__text__outer{
+    margin: auto;
+    margin-top: 50px;
+    padding: 20px;
+    max-width: 600px;
+}
+
+h1 {
+    margin-top: 0px;
+    text-justify: auto;
+    margin-bottom: 10px;
+    text-align: justify;
+    font-size: 2rem;
+    background: linear-gradient(to right, #ef5350, #f48fb1, #7e57c2, #2196f3, #26c6da, #43a047,  #f9a825, #ff5722);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
