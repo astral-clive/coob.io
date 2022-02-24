@@ -22,7 +22,7 @@ const colorStringToPass = "RGB(" + redValue + ", " + greenValue + ", " + blueVal
       borderRadius: "10%",
       cursor: "pointer",
     }}
-  ></motion.div>
+  >"Tester"</motion.div>
   )
 }
 
